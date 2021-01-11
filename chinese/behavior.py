@@ -21,6 +21,7 @@ from .freq import get_frequency
 from .hanzi import get_silhouette, get_simp, get_trad, split_hanzi
 from .main import config, dictionary
 from .sound import sound
+from .strokeorder import strokeorder
 from .transcribe import (
     accentuate,
     no_tone,
@@ -206,6 +207,25 @@ def fill_frequency(hanzi, note):
         )
 
 
+def fill_strokeOrder(hanzi, note):
+    updated = 0
+    errors = 0
+
+    # Extend this to as many concurrent hanzi characters you want in one card
+    if len(hanzi) <= 4:
+      for i in range(0, len(hanzi)):
+        for f in config['fields']['strokeorder']:
+          name = f + ' ' + str(i+1)
+          if name in note and note[name] == '':
+              s = strokeorder(hanzi[i], config['strokeorder'])
+              if s:
+                  note[name] = s
+                  updated += 1
+              else:
+                  errors += 1
+    return updated, errors
+
+
 def fill_ruby(hanzi, note, trans_group, ruby_group):
     if trans_group == 'bopomofo':
         trans = flatten(
@@ -273,6 +293,7 @@ def update_fields(note, focus_field, fields):
             fill_frequency(hanzi, copy)
             fill_all_rubies(hanzi, copy)
             fill_silhouette(hanzi, copy)
+            fill_strokeOrder(hanzi, copy)
         else:
             erase_fields(copy, config.get_fields())
     elif focus_field in config['fields']['pinyin']:
